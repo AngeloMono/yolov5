@@ -115,7 +115,7 @@ class _RepeatSampler(object):
 
 
 class LoadImages:  # for inference
-    def __init__(self, path, img_size=640):
+    def __init__(self, path, img_size=640, verbose=True):
         p = str(Path(path))  # os-agnostic
         p = os.path.abspath(p)  # absolute path
         if '*' in p:
@@ -131,6 +131,7 @@ class LoadImages:  # for inference
         videos = [x for x in files if x.split('.')[-1].lower() in vid_formats]
         ni, nv = len(images), len(videos)
 
+        self.verbose = verbose
         self.img_size = img_size
         self.files = images + videos
         self.nf = ni + nv  # number of files
@@ -167,7 +168,8 @@ class LoadImages:  # for inference
                     ret_val, img0 = self.cap.read()
 
             self.frame += 1
-            print('video %g/%g (%g/%g) %s: ' % (self.count + 1, self.nf, self.frame, self.nframes, path), end='')
+            if self.verbose:
+                print('video %g/%g (%g/%g) %s: ' % (self.count + 1, self.nf, self.frame, self.nframes, path), end='')
 
         else:
             # Read image
@@ -195,7 +197,7 @@ class LoadImages:  # for inference
 
 
 class LoadWebcam:  # for inference
-    def __init__(self, pipe='0', img_size=640):
+    def __init__(self, pipe='0', img_size=640, verbose=True):
         self.img_size = img_size
 
         if pipe.isnumeric():
@@ -204,6 +206,7 @@ class LoadWebcam:  # for inference
         # pipe = 'rtsp://username:password@192.168.1.64/1'  # IP camera with login
         # pipe = 'http://wmccpinetop.axiscam.net/mjpg/video.mjpg'  # IP golf camera
 
+        self.verbose = verbose
         self.pipe = pipe
         self.cap = cv2.VideoCapture(pipe)  # video capture object
         self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 3)  # set buffer size
@@ -236,7 +239,8 @@ class LoadWebcam:  # for inference
         # Print
         assert ret_val, 'Camera Error %s' % self.pipe
         img_path = 'webcam.jpg'
-        print('webcam %g: ' % self.count, end='')
+        if self.verbose:
+            print('webcam %g: ' % self.count, end='')
 
         # Padded resize
         img = letterbox(img0, new_shape=self.img_size)[0]
